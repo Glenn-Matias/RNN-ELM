@@ -3,6 +3,9 @@ import random
 
 from rnn import RNN
 from data import train_data, test_data
+np.random.seed(0)
+np.random.randn(1)
+
 
 # Create the vocabulary.
 vocab = list(set([w for text in train_data.keys() for w in text.split(' ')]))
@@ -33,7 +36,7 @@ def softmax(xs):
   return np.exp(xs) / sum(np.exp(xs))
 
 # Initialize our RNN!
-rnn = RNN(vocab_size, 2)
+rnn = RNN(vocab_size, 1)
 
 def processData(data, backprop=True):
   '''
@@ -42,22 +45,32 @@ def processData(data, backprop=True):
   - backprop determines if the backward phase should be run.
   '''
   items = list(data.items())
-  random.shuffle(items)
-
+  # random.shuffle(items)
   loss = 0
   num_correct = 0
-
-  for x, y in items:
+  accumulated_target = np.empty((0,1), int)
+  for x, y in items[0:5]:
     inputs = createInputs(x)
-    target = int(y)
-
+    # for i, x in enumerate(inputs):
+    #   print("*")
+    #   print(x)
     # Forward
-    out, _ = rnn.forward(inputs)
-    probs = softmax(out)
+    # out, _ = rnn.forward(inputs, y)
+    hidden_layer_output = rnn.forward(inputs)
+    accumulated_target  = np.vstack([accumulated_target, np.array([int(y)])])
+    # accumulated_predict += [probs]
+  print("Hidden layer output")
+  print(hidden_layer_output)
 
-    # Calculate loss / accuracy
-    loss -= np.log(probs[target])
-    num_correct += int(np.argmax(probs) == target)
+  rnn.compute_beta(accumulated_target)
+    # probs = softmax(probs)
+    # print(probs)
+    # print(np.argmax(probs))
+    # break
+  
+    # # Calculate loss / accuracy
+    # loss -= np.log(probs[target])
+    # num_correct += int(np.argmax(probs) == target)
 
     # if backprop:
     #   # Build dL/dy
@@ -67,13 +80,16 @@ def processData(data, backprop=True):
     #   # Backward
     #   rnn.backprop(d_L_d_y)
 
-  return loss / len(data), num_correct / len(data)
+  # return loss / len(data), num_correct / len(data)
+  return None, None
 
-train_loss, train_acc = processData(train_data)
-print('Train:\tLoss %.3f | Accuracy: %.3f' % (train_loss, train_acc))
+# train_loss, train_acc = processData(train_data)
+processData(train_data)
 
-test_loss, test_acc = processData(test_data, backprop=False)
-print('Test:\tLoss %.3f | Accuracy: %.3f' % (test_loss, test_acc))
+# print('Train:\tLoss %.3f | Accuracy: %.3f' % (train_loss, train_acc))
+
+# test_loss, test_acc = processData(test_data, backprop=False)
+# print('Test:\tLoss %.3f | Accuracy: %.3f' % (test_loss, test_acc))
 
 
 # # Training loop

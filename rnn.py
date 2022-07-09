@@ -1,18 +1,41 @@
 import numpy as np
 from numpy.random import randn
 
+np.random.seed(0)
+np.random.randn(1)
+np.set_printoptions(suppress=True)
 class RNN:
   # A many-to-one Vanilla Recurrent Neural Network.
 
-  def __init__(self, input_size, output_size, hidden_size=64):
+  def __init__(self, input_size, output_size, hidden_size=3):
     # Weights
     self.Whh = randn(hidden_size, hidden_size) / 1000
     self.Wxh = randn(hidden_size, input_size) / 1000
     self.Why = randn(output_size, hidden_size) / 1000
+    self.hidden_layer_output = np.empty((0,hidden_size), int)
+    # print(self.Wxh.shape)
+    # print(self.Whh.shape)
 
     # Biases
     self.bh = np.zeros((hidden_size, 1))
     self.by = np.zeros((output_size, 1))
+
+    # ELM
+    self.beta = 0
+
+
+  def sigmoid(self, x):
+    """
+        Sigmoid activation function
+        
+        Parameters:
+        x: array-like or matrix
+            The value that the activation output will look for
+        Returns:      
+            The results of activation using sigmoid function
+    """
+    return 1 / (1 + np.exp(-1 * x))
+
 
   def forward(self, inputs):
     '''
@@ -20,66 +43,43 @@ class RNN:
     Returns the final output and hidden state.
     - inputs is an array of one hot vectors with shape (input_size, 1).
     '''
-    h = np.zeros((self.Whh.shape[0], 1))
 
-    self.last_inputs = inputs
-    self.last_hs = { 0: h }
+
+    h = np.zeros((self.Whh.shape[0], 1))
 
     # Perform each step of the RNN
     for i, x in enumerate(inputs):
       h = np.tanh(self.Wxh @ x + self.Whh @ h + self.bh)
-      self.last_hs[i + 1] = h
+        
+    self.hidden_layer_output  = np.append(self.hidden_layer_output, np.array(h.T), axis=0)
+    # print(self.Wxh @ x + self.Whh @ h + self.bh)
+    # print(h.shape)
 
     # Compute the output
-    y = self.Why @ h + self.by
+    # y = self.Why @ h + self.by
+    # print(self.relu(y))
 
-    return y, h
+    # self.H = h
+    # print(self.H.shape)
+    return self.hidden_layer_output
 
-#   def backprop(self, d_y, learn_rate=2e-2):
-#     '''
-#     Perform a backward pass of the RNN.
-#     - d_y (dL/dy) has shape (output_size, 1).
-#     - learn_rate is a float.
-#     '''
-#     n = len(self.last_inputs)
 
-#     # Calculate dL/dWhy and dL/dby.
-#     d_Why = d_y @ self.last_hs[n].T
-#     d_by = d_y
+  def compute_beta(self, y):
 
-#     # Initialize dL/dWhh, dL/dWxh, and dL/dbh to zero.
-#     d_Whh = np.zeros(self.Whh.shape)
-#     d_Wxh = np.zeros(self.Wxh.shape)
-#     d_bh = np.zeros(self.bh.shape)
+    print(y)
+    H = self.hidden_layer_output
 
-#     # Calculate dL/dh for the last h.
-#     # dL/dh = dL/dy * dy/dh
-#     d_h = self.Why.T @ d_y
+    print("After sigmoid")
+    H = self.sigmoid(H)
 
-#     # Backpropagate through time.
-#     for t in reversed(range(n)):
-#       # An intermediate value: dL/dh * (1 - h^2)
-#       temp = ((1 - self.last_hs[t + 1] ** 2) * d_h)
+    print(H)
+    print(H.shape)
+    
+    H_moore_penrose = np.linalg.inv(H.T * H) * H.T
+    # self.beta = H_moore_penrose * y
 
-#       # dL/db = dL/dh * (1 - h^2)
-#       d_bh += temp
 
-#       # dL/dWhh = dL/dh * (1 - h^2) * h_{t-1}
-#       d_Whh += temp @ self.last_hs[t].T
 
-#       # dL/dWxh = dL/dh * (1 - h^2) * x
-#       d_Wxh += temp @ self.last_inputs[t].T
-
-#       # Next dL/dh = dL/dh * (1 - h^2) * Whh
-#       d_h = self.Whh @ temp
-
-#     # Clip to prevent exploding gradients.
-#     for d in [d_Wxh, d_Whh, d_Why, d_bh, d_by]:
-#       np.clip(d, -1, 1, out=d)
-
-#     # Update weights and biases using gradient descent.
-#     self.Whh -= learn_rate * d_Whh
-#     self.Wxh -= learn_rate * d_Wxh
-#     self.Why -= learn_rate * d_Why
-#     self.bh -= learn_rate * d_bh
-#     self.by -= learn_rate * d_by
+    print("Start beta")
+    print(self.beta)
+    print("End beta")

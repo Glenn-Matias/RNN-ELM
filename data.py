@@ -1,4 +1,5 @@
 train_data = {
+    'this is very happy': True,
   'good': True,
   'bad': False,
   'happy': True,
@@ -25,7 +26,6 @@ train_data = {
   'this is very good': True,
   'i am very bad': False,
   'this is very sad': False,
-  'this is very happy': True,
   'i am good not bad': True,
   'this is good not bad': True,
   'i am bad not good': False,
