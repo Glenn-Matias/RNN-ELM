@@ -14,7 +14,7 @@ from sklearn.model_selection import train_test_split
 
 df = pd.read_csv('data/full.csv')
 
-data_size_each = 300
+data_size_each = 100
 df_positive = df.head(data_size_each)
 df_negative = df.tail(data_size_each)
 df = pd.concat([df_positive, df_negative])
@@ -24,13 +24,19 @@ df = df[['text', 'class']]
 
 train, test = train_test_split(df, test_size=0.2)
 
+data_setting = 'dummy'
 
-df_dict =  OrderedDict(dict(df.values))
-train_data = OrderedDict(dict(train.values))
-test_data =  OrderedDict(dict(test.values))
+if data_setting == 'dummy':
+# Create the vocabulary.
+
+  vocab = list(dict.fromkeys([w for text in train_data.keys() for w in text.split(' ')]))
+else:
+  df_dict =  OrderedDict(dict(df.values))
+  train_data = OrderedDict(dict(train.values))
+  test_data =  OrderedDict(dict(test.values))
+  vocab = list(dict.fromkeys([w for text in df_dict.keys() for w in text.split(' ')]))
 
 # Create the vocabulary.
-vocab = list(dict.fromkeys([w for text in df_dict.keys() for w in text.split(' ')]))
 vocab_size = len(vocab)
 print('%d unique words found' % vocab_size)
 
@@ -75,47 +81,26 @@ def processData(data, backprop=True):
   for x, y in items:
     inputs = createInputs(x)
 
-    # for i, x in enumerate(inputs):
-    #   print("*")
-    #   print(x)
-    # Forward
-    # out, _ = rnn.forward(inputs, y)
     print(accumulated_target.shape)
     hidden_layer_output = rnn.forward(inputs)
     accumulated_target  = np.vstack([accumulated_target, np.array([int(y)])])
-    # accumulated_predict += [probs]
   print("Hidden layer output")
-  # print(hidden_layer_output)
 
   rnn.compute_beta(accumulated_target)
-    # probs = softmax(probs)
-    # print(probs)
-    # print(np.argmax(probs))
-    # break
-  
-    # # Calculate loss / accuracy
-    # loss -= np.log(probs[target])
-    # num_correct += int(np.argmax(probs) == target)
 
-    # if backprop:
-    #   # Build dL/dy
-    #   d_L_d_y = probs
-    #   d_L_d_y[target] -= 1
+ 
 
-    #   # Backward
-    #   rnn.backprop(d_L_d_y)
-
-  # return loss / len(data), num_correct / len(data)
-  return None, None
-
-# train_loss, train_acc = processData(train_data)
 processData(train_data)
-loss = 0
+
+
+
+
+print("*" * 20)
+print("Train Data")
 num_correct = 0
-
-
-
-items = list(test_data.items())
+items = list(train_data.items())
+# items = list(test_data.items())
+total = len(items)
 for x, y in items:
   inputs = createInputs(x)
   pred_proba = rnn.predict(inputs)
@@ -125,33 +110,22 @@ for x, y in items:
 
   if y_pred == int(y): num_correct+=1
 
-print(f"Total right: {num_correct} / {len(items)}")
+print(f"Total right: {num_correct} / {total} or {((num_correct/total)*100)}")
 
 
+print("*" * 20)
+print("Test Data")
 
+num_correct = 0
+items = list(test_data.items())
+total = len(items)
+for x, y in items:
+  inputs = createInputs(x)
+  pred_proba = rnn.predict(inputs)
 
+  y_pred = (pred_proba > 0.5).astype(int)
+  print(f"{pred_proba} -> {y_pred}")
 
+  if y_pred == int(y): num_correct+=1
 
-  # num_correct += int(np.argmax(probs) == target)
-
-
-# print('Train:\tLoss %.3f | Accuracy: %.3f' % (train_loss, train_acc))
-
-# test_loss, test_acc = processData(test_data, backprop=False)
-# print('Test:\tLoss %.3f | Accuracy: %.3f' % (test_loss, test_acc))
-
-
-# # Training loop
-# for epoch in range(1000):
-#   train_loss, train_acc = processData(train_data)
-
-#   if epoch % 100 == 99:
-#     print('--- Epoch %d' % (epoch + 1))
-#     print('Train:\tLoss %.3f | Accuracy: %.3f' % (train_loss, train_acc))
-
-#     test_loss, test_acc = processData(test_data, backprop=False)
-#     print('Test:\tLoss %.3f | Accuracy: %.3f' % (test_loss, test_acc))
-
-# default
-# Train:  Loss 0.693 | Accuracy: 0.466
-# Test:   Loss 0.693 | Accuracy: 0.450
+print(f"Total right: {num_correct} / {total} or {((num_correct/total)*100)}")
