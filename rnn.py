@@ -1,25 +1,34 @@
+from telnetlib import XASCII
 import numpy as np
 from numpy.random import randn
 
-np.random.seed(0)
-np.random.randn(1)
-np.set_printoptions(suppress=True)
 class RNN:
   # A many-to-one Vanilla Recurrent Neural Network.
 
-  def __init__(self, input_size, output_size, hidden_size=3):
+  def __init__(self, input_size, output_size, hidden_size= 1000):
+
+    np.random.seed(0)
+    np.set_printoptions(suppress=True)
+
+
     # Weights
-    self.Whh = randn(hidden_size, hidden_size) / 1000
-    self.Wxh = randn(hidden_size, input_size) / 1000
-    self.Why = randn(output_size, hidden_size) / 1000
+    # self.Whh = randn(hidden_size, hidden_size)
+    # self.Wxh = randn(hidden_size, input_size)
+    # self.Why = randn(output_size, hidden_size)
+
+    self.Whh = np.random.uniform(-0.5, 0.5, (hidden_size, hidden_size))
+    self.Wxh = np.random.uniform(-0.5, 0.5, (hidden_size, input_size))
+
+
     self.hidden_layer_output = np.empty((0,hidden_size), int)
-    # print(self.Wxh.shape)
     # print(self.Whh.shape)
+    # print(self.Wxh.shape)
 
     # Biases
-    self.bh = np.zeros((hidden_size, 1))
-    self.by = np.zeros((output_size, 1))
-
+    # self.bh = randn(hidden_size, 1)
+    # self.by = np.zeros((output_size, 1))
+    # self.bh = np.random.uniform(0, 1, (1, hidden_size))
+    # print(self.Wxh)
     # ELM
     self.beta = 0
 
@@ -49,8 +58,9 @@ class RNN:
 
     # Perform each step of the RNN
     for i, x in enumerate(inputs):
-      h = np.tanh(self.Wxh @ x + self.Whh @ h + self.bh)
-        
+      h = np.tanh(self.Wxh @ x + self.Whh @ h)
+
+
     self.hidden_layer_output  = np.append(self.hidden_layer_output, np.array(h.T), axis=0)
     # print(self.Wxh @ x + self.Whh @ h + self.bh)
     # print(h.shape)
@@ -66,20 +76,59 @@ class RNN:
 
   def compute_beta(self, y):
 
-    print(y)
-    H = self.hidden_layer_output
+    # print(y)
+    
+    H = np.asmatrix(self.hidden_layer_output)
 
     print("After sigmoid")
     H = self.sigmoid(H)
 
-    print(H)
-    print(H.shape)
-    
     H_moore_penrose = np.linalg.inv(H.T * H) * H.T
-    # self.beta = H_moore_penrose * y
+    self.beta = H_moore_penrose * y
+
+    # print("Start beta")
+    # print(self.beta)
+    # print("End beta")
 
 
+  def predict(self, input):
+    """
+        Predict the results of the training process using test data
+        Parameters:
+        X: array-like or matrix
+            Test data that will be used to determine output using ELM
+        Returns:
+            Predicted results or outputs from test data
+    """
+    # X = np.matrix(X)
 
-    print("Start beta")
-    print(self.beta)
-    print("End beta")
+
+    h = np.zeros((self.Whh.shape[0], 1))
+
+    # print("Start")
+    # Perform each step of the RNN
+    for i, x in enumerate(input):
+      h = np.tanh((self.Wxh @ x + self.Whh @ h))
+    # print("End")
+
+
+    # print("glenn")
+    # print((self.Whh))
+    # print("matias")
+
+    # h = self.sigmoid(h) * self.beta.T 
+    # print(self.Why @ (h)) 
+    # y = (self.Why @ (h * self.beta.T))
+    # print(y)
+    # print("s")
+    # print(y)
+    # y = np.sum(yh)
+    y = self.sigmoid(h.T) @ self.beta 
+    # print(self.beta)
+    # print(y.shape)
+
+    y_sum = np.sum(y)
+
+    print(f"{y_sum}")
+    # print(self.beta)
+    return y_sum

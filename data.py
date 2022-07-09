@@ -1,5 +1,8 @@
-train_data = {
-    'this is very happy': True,
+from collections import OrderedDict
+
+
+train_data = OrderedDict({
+  'this is very happy': True,
   'good': True,
   'bad': False,
   'happy': True,
@@ -57,9 +60,9 @@ train_data = {
   'i am not at all bad or sad right now': True,
   'i am not at all good or happy right now': False,
   'this was not happy and not good earlier': False,
-}
+})
 
-test_data = {
+test_data = OrderedDict({
   'this is happy': True,
   'i am good': True,
   'this is not happy': False,
@@ -80,4 +83,4 @@ test_data = {
   'this is very bad right now': False,
   'this was good earlier': True,
   'i was not happy and not good earlier': False,
-}
+})
