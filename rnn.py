@@ -7,7 +7,7 @@ np.set_printoptions(suppress=True)
 class RNN:
   # A many-to-one Vanilla Recurrent Neural Network.
 
-  def __init__(self, input_size, output_size, hidden_size= 30):
+  def __init__(self, input_size, output_size, hidden_size):
     # Weights
     self.Whh = randn(hidden_size, hidden_size)
     self.Wxh = randn(hidden_size, input_size)
@@ -16,7 +16,7 @@ class RNN:
     # self.Whh = np.random.uniform(-0.5, 0.5, (hidden_size, hidden_size))
     # self.Wxh = np.random.uniform(-0.5, 0.5, (hidden_size, input_size))
 
-
+    self.bh = randn(hidden_size, 1)
     self.hidden_layer_output = np.empty((0,hidden_size), int)
     # print(self.Wxh.shape)
 
@@ -49,7 +49,7 @@ class RNN:
 
     # Perform each step of the RNN
     for i, x in enumerate(inputs):
-      h = np.tanh(self.Wxh @ x + self.Whh @ h)
+      h = np.tanh(self.Wxh @ x + self.Whh @ h + self.bh)
 
 
     self.hidden_layer_output  = np.append(self.hidden_layer_output, np.array(h.T), axis=0)
@@ -69,9 +69,10 @@ class RNN:
     h = np.zeros((self.Whh.shape[0], 1))
 
     for i, x in enumerate(input):
-      h = np.tanh((self.Wxh @ x + self.Whh @ h))
+      h = np.tanh((self.Wxh @ x + self.Whh @ h + self.bh))
 
     y = h.T @ self.beta 
+    # y = h.T.dot(self.beta)
 
     y_sum = np.sum(y)
 
