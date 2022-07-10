@@ -23,7 +23,7 @@ if data_setting == 'dummy':
 else:
   df = pd.read_csv('data/full.csv')
 
-  data_size_each = 500
+  data_size_each = 1603
   df_positive = df.head(data_size_each)
   df_negative = df.tail(data_size_each)
   df = pd.concat([df_positive, df_negative])
